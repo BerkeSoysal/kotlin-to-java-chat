@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 import com.example.kotlintojavachat.MessageVM;
 import com.example.kotlintojavachat.UserVM;
@@ -16,7 +17,7 @@ import com.github.javafaker.Faker;
 public class FakeMessageService implements MessageService
 {
     Map<String, UserVM> users;
-    Map<String, String> usersQuotes;
+    Map<String, Supplier<String>> usersQuotes;
     Random random;
     public FakeMessageService() throws MalformedURLException
     {
@@ -29,10 +30,10 @@ public class FakeMessageService implements MessageService
                         "Yoda", new UserVM("Yoda", new URL("https://news.toyark" +
                                 ".com/wp-content/uploads/sites/4/2019/03/SH-Figuarts-Yoda-001.jpg")));
 
-        usersQuotes = Map
-                .of("Shakespeare", Faker.instance().shakespeare().asYouLikeItQuote(),
-                        "RickAndMorty", Faker.instance().rickAndMorty().quote(),
-                        "Yoda", Faker.instance().yoda().quote());
+         usersQuotes = Map
+                .of("Shakespeare", () -> Faker.instance().shakespeare().asYouLikeItQuote(),
+                        "RickAndMorty", () -> Faker.instance().rickAndMorty().quote(),
+                        "Yoda", () -> Faker.instance().yoda().quote());
 
         random = new Random();
     }
@@ -45,7 +46,7 @@ public class FakeMessageService implements MessageService
         {
             List<String> keys = new ArrayList<>(users.keySet());
             String randKey = keys.get(random.nextInt(keys.size()));
-            String content = usersQuotes.get(randKey);
+            String content = usersQuotes.get(randKey).get();
             messageVMS.add(new MessageVM(content, users.get(randKey), Instant.now(), Integer.toString(random.nextInt(10))));
         }
         return messageVMS;
